@@ -1,0 +1,33 @@
+LiteDB migration notes
+
+This file documents the migration from the legacy JSON persistence (data.json) to an embedded LiteDB single-file database used by BookCollection.
+
+Overview
+- The project now uses LiteDB (embedded NoSQL) to store books in a single file named `books.db` by default.
+- On construction, BookCollection will attempt to migrate an existing `data.json` into the LiteDB file if the DB is empty.
+- After a successful migration the original `data.json` is renamed to `data.json.migrated` to avoid duplicate migrations.
+
+Behavior and locations
+- Default DB file: `books.db` in the application base directory (the same location `data.json` previously lived).
+- You can pass a custom path to the BookCollection constructor. If the path ends with `.db` it will be used as the DB file; if it ends with `.json` it will be treated as the legacy JSON path and migrated into a same-named `.db` file.
+
+Schema and indexes
+- Books are stored as documents in the `books` collection. The existing `Book` model shape (Title, Author, Year, Read) is preserved — no explicit Id property was added.
+- Indexes: Title and Author indexes are created automatically for fast lookups.
+
+Migration notes
+- If `data.json` is invalid JSON, migration is skipped and a console warning is emitted; the existing DB (if any) is left unchanged.
+- If migration encounters an I/O error the operation reports a warning and continues; no data is lost by this operation.
+
+Testing notes
+- Unit tests now use a per-test temporary `.db` file and ensure BookCollection is disposed to avoid file locks.
+- When writing new tests that interact with the DB, always dispose the BookCollection instance before deleting or replacing the DB file.
+
+Operational notes
+- LiteDB locks the DB file while it is open. For the console app this is acceptable (the OS will release handles on process exit); if you run multiple processes against the same DB use the `Connection=shared` option (already configured in the project) or run a single shared instance.
+
+Rollback & backups
+- The migration renames `data.json` to `data.json.migrated` — keep the migrated file as a backup until you verify the DB contents.
+
+References
+- LiteDB official: https://www.litedb.org/

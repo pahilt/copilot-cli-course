@@ -14,4 +14,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="LiteDB" Version="6.0.0-prerelease.77" />
+  </ItemGroup>
+
 </Project>

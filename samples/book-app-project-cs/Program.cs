@@ -42,15 +42,26 @@ void HandleAdd()
     Console.Write("Year: ");
     var yearStr = Console.ReadLine()?.Trim() ?? "";
 
-    if (int.TryParse(yearStr, out var year))
+    if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(author))
     {
-        collection.AddBook(title, author, year);
-        Console.WriteLine("\nBook added successfully.\n");
+        Console.WriteLine("\nError: Title and author cannot be empty.\n");
+        return;
     }
-    else
+
+    if (!int.TryParse(yearStr, out var year))
     {
         Console.WriteLine($"\nError: '{yearStr}' is not a valid year.\n");
+        return;
     }
+
+    if (year < 1 || year > DateTime.Now.Year + 1)
+    {
+        Console.WriteLine($"\nError: Year must be between 1 and {DateTime.Now.Year + 1}.\n");
+        return;
+    }
+
+    collection.AddBook(title, author, year);
+    Console.WriteLine("\nBook added successfully.\n");
 }
 
 void HandleRemove()
@@ -59,9 +70,9 @@ void HandleRemove()
 
     Console.Write("Enter the title of the book to remove: ");
     var title = Console.ReadLine()?.Trim() ?? "";
-    collection.RemoveBook(title);
+    var removed = collection.RemoveBook(title);
 
-    Console.WriteLine("\nBook removed if it existed.\n");
+    Console.WriteLine(removed ? "\nBook removed successfully.\n" : "\nBook not found.\n");
 }
 
 void HandleFind()
@@ -96,7 +107,7 @@ if (args.Length == 0)
     return;
 }
 
-var command = args[0].ToLower();
+var command = args[0].ToLowerInvariant();
 
 switch (command)
 {
